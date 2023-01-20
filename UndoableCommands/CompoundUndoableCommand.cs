@@ -1,6 +1,6 @@
 ﻿namespace Kodakami.UndoableCommands
 {
-    public abstract class CompoundUndoableCommand<TArgs, TSaved> : UndoableCommand<TArgs, TSaved>
+    public abstract class CompoundUndoableCommand<TArgs> : UndoableCommand<TArgs, object>
     {
         private readonly UndoStack _internalUndoStack = new();
 
@@ -24,6 +24,7 @@
             }
 
             // If we got here, this is the first time we're using this command.
+            // If NULL is returned by YieldSubcommands, then the foreach loop just won't do anything.
 
             foreach (var cmd in YieldSubcommands())
             {
@@ -43,6 +44,20 @@
             {
                 _internalUndoStack.Undo();
             }
+        }
+
+        public sealed class AdHoc : CompoundUndoableCommand<TArgs>
+        {
+            private readonly IEnumerable<IUndoableCommand> _deferredSubcommands;
+
+            public AdHoc(IDescriber describer, TArgs args, IEnumerable<IUndoableCommand> subcommands)
+                :base(describer, args)
+            {
+                // NULL is acceptable because the execution loop just won't happen.
+                _deferredSubcommands = subcommands;
+            }
+
+            protected override IEnumerable<IUndoableCommand> YieldSubcommands() => _deferredSubcommands;
         }
     }
 }
