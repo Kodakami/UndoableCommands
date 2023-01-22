@@ -14,27 +14,19 @@
         }
         public abstract void Execute();
         public abstract void Undo();
-    }
-    /// <summary>
-    /// A command with functionality for executing, undoing, and then redoing an action. It also has functionality for describing the action.
-    /// </summary>
-    /// <typeparam name="TArgs">The type of argument to pass to the execute method</typeparam>
-    /// <typeparam name="TSaved">The type of saved data to pass to the undo method</typeparam>
-    public abstract class UndoableCommand<TArgs, TSaved> : UndoableCommand
-    {
-        protected TArgs? Args { get; private set; }
-        protected TSaved? Saved { get; private set; }
 
-        protected UndoableCommand(IDescriber description, TArgs? args)
-            :base(description)
+        public sealed class AdHoc : UndoableCommand
         {
-            Args = args;
-            Saved = default;
+            private readonly Action _executeAction;
+            private readonly Action _undoAction;
+
+            public AdHoc(IDescriber description, Action executeAction, Action undoAction) : base(description)
+            {
+                _executeAction = executeAction;
+                _undoAction = undoAction;
+            }
+            public override void Execute() => _executeAction();
+            public override void Undo() => _undoAction();
         }
-        public override void Execute()
-        {
-            Saved = Execute_ReturnSaved();
-        }
-        protected virtual TSaved? Execute_ReturnSaved() { return default; }
     }
 }

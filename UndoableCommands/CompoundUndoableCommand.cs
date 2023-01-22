@@ -1,10 +1,10 @@
 ﻿namespace Kodakami.UndoableCommands
 {
-    public abstract class CompoundUndoableCommand<TArgs> : UndoableCommand<TArgs, object>
+    public abstract class CompoundUndoableCommand : UndoableCommand
     {
         private readonly UndoStack _internalUndoStack = new();
 
-        protected CompoundUndoableCommand(IDescriber describer, TArgs args) : base(describer, args) { }
+        protected CompoundUndoableCommand(IDescriber describer) : base(describer) { }
 
         public override void Execute()
         {
@@ -46,12 +46,12 @@
             }
         }
 
-        public sealed class AdHoc : CompoundUndoableCommand<TArgs>
+        new public sealed class AdHoc : CompoundUndoableCommand
         {
             private readonly IEnumerable<IUndoableCommand> _deferredSubcommands;
 
-            public AdHoc(IDescriber describer, TArgs args, IEnumerable<IUndoableCommand> subcommands)
-                :base(describer, args)
+            public AdHoc(IDescriber describer, IEnumerable<IUndoableCommand> subcommands)
+                :base(describer)
             {
                 // NULL is acceptable because the execution loop just won't happen.
                 _deferredSubcommands = subcommands;
